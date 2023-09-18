@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Post;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -21,19 +22,15 @@ Route::get('/', function () {
 //Nommé et donné un prefix
 Route::prefix('/blog')->name('blog.')->group(function () {
     Route::get('/', function (Request $request) {
-
-        return [
-            //fait un lien faire la page avec des params dynamic
-            'link' => \route('blog.show', ['slug' => 'article', 'id' => 13])
-        ];
+        return Post::paginate(25);
     })->name('index');
 
     /*Nom pour chaque route et ce que chaque params signifie*/
     Route::get('/{slug}-{id}', function (string $slug, string $id) {
-        return [
-            'slug' => $slug,
-            'id' => $id
-        ];
+        $post = Post::findOrFail($id);
+        if ($post->slug !== $slug)
+            return to_route('blog.show', ['slug' => $post->slug, 'id' => $post->id]);
+        return $post;
     })->where(
         [
             'id' => '[0-9]+',
